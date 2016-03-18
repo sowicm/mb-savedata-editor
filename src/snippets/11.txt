@@ -1,0 +1,49 @@
+
+
+LRESULT CChildView::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
+{
+    LRESULT lr = CWnd::WindowProc(message, wParam, lParam);
+    switch (message)
+    {
+    case WM_PAINT:
+        ((CMainFrame*)theApp.m_pMainWnd)->Render();
+        break;
+    case WM_MOUSEMOVE:
+        ((CMainFrame*)theApp.m_pMainWnd)->m_nMouseX = LOWORD(lParam);
+        ((CMainFrame*)theApp.m_pMainWnd)->m_nMouseY = HIWORD(lParam);
+        break;
+    case WM_LBUTTONDOWN:
+        ((CMainFrame*)theApp.m_pMainWnd)->m_bLBDown = 1;
+        break;
+    case WM_LBUTTONUP:
+        ((CMainFrame*)theApp.m_pMainWnd)->m_bLBDown = 0;
+        break;        
+    case WM_CHAR:
+        if (((CMainFrame*)theApp.m_pMainWnd)->m_bTyping)
+            ((CMainFrame*)theApp.m_pMainWnd)->m_CharReceived = wParam;
+        break;
+    case WM_KEYDOWN:
+        if (!theEditor.IsEmpty() && !((CMainFrame*)theApp.m_pMainWnd)->m_bTyping)
+        {
+            switch (wParam)
+            {
+            case 'C':
+                ((CMainFrame*)theApp.m_pMainWnd)->TurnView(VIEW_CHARWIN);
+                break;
+            case 'I':
+                ((CMainFrame*)theApp.m_pMainWnd)->TurnView(VIEW_ITEMWIN);
+                break;
+            }
+        }
+        switch (wParam)
+        {
+        case VK_ESCAPE:
+            ((CMainFrame*)theApp.m_pMainWnd)->TurnView(VIEW_MAINMENU);
+            break;
+        case VK_F12:
+            theEditor.OnSaveFile();
+            break;
+        }
+    }
+    return lr;
+}

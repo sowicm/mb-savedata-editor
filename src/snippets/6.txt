@@ -1,0 +1,39 @@
+
+void CMainApp::UpdateModuleSetting(void)
+{
+    for (int i = 0; i < pModifierComboBox->GetCount(); ++i)
+        pModifierComboBox->DeleteItem(i);
+    for (int i = 0; i < pItemKindComboBox->GetCount(); ++i)
+        pItemKindComboBox->DeleteItem(i);
+    for (int i = 0; i < CModuleSetting::nNumModifier; ++i)
+        pModifierComboBox->AddItem(pCurMod->szModifierNames[i]);
+    pItemKindComboBox->AddItem(_T("空物品栏"));
+    for (int i = 0; i < CModuleSetting::nNumItem; ++i)
+        pItemKindComboBox->AddItem(pCurMod->szItemNames[i]);
+}
+
+
+int CMainApp::GetItemIDFromStr(LPCTSTR Str)
+{
+    for (int i = 0; i < CModuleSetting::nNumItem; ++i)
+    {
+        if (!pCurMod->szItemNames[i].Compare(Str))
+            return i;
+    }
+    return -1;
+}
+
+
+void CMainApp::PutItemPlayerInfo(void)
+{
+    int i = trpPlayer.nIndex + 320;
+    for (int j = 0; j < CItem::Number; ++j)
+    {
+        *(unsigned*)(&m_uszFileData[i]) = itmPlayer[j].nID;
+        i += 4;
+        m_uszFileData[i] = itmPlayer[j].nConsumed;
+        i += 3;
+        m_uszFileData[i] = itmPlayer[j].nModifier;
+        ++i;
+    }
+}

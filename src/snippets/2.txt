@@ -1,0 +1,171 @@
+
+void CMainApp::OnFileOpen(void)
+{
+    CMyFileDialog fileDlg(TRUE, NULL, NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, _T("M&B存档 (*.sav)|*.sav||"));
+    fileDlg.DoModal();    
+    if (!fileDlg.GetPathName().IsEmpty())
+    {
+        m_szPathName = fileDlg.GetPathName();
+        CFileStatus status;
+        CFile::GetStatus(m_szPathName, status);
+        /*
+        很简单啊,800M也没事，只是移动文件指针而已，不是读取。
+        FILE *fp = fopen("file.data","rb"); 
+        unsigned long ulSize = 0;
+        fseek(fp,SEEK_END);
+        ulSize = ftell(fp);
+        fclose(fp);
+        */ 
+        m_nFileLength = status.m_size;
+        m_uszFileData = new unsigned char[m_nFileLength];
+        
+        ifstream file(m_szPathName, ios::binary);
+        file.read((char *)m_uszFileData, m_nFileLength);
+        file.close();
+
+        char lpszFileHead[6];
+        memcpy(lpszFileHead, m_uszFileData, 5);
+        lpszFileHead[5] = 0;
+        if (strcmp(lpszFileHead, "WRDRn"))
+        {
+            ::AfxMessageBox(_T("此文件不是战团存档！"));
+            m_szPathName.Empty();
+            return;
+        }
+        
+        /*
+        bool bByteCheck = false;
+        for (int i = 0; i < m_nFileLength; ++i)
+            if (m_uszFileData[i] == 255)
+                bByteCheck = true;
+        assert(bByteCheck);
+        */
+
+        unsigned char uszFlag[] = {255, 255, 255, 255, 0, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0};
+        
+        const int nFlagLength = 48;
+        
+        int i = KMP(m_uszFileData, m_nFileLength, uszFlag, nFlagLength);
+        if (i == -1)
+        {
+            ::AfxMessageBox(_T("此文件不是战团存档！"));
+            m_szPathName.Empty();
+            return;
+        }
+
+        /*
+        // For others
+        unsigned char *uszflag = GetUszFromHex("FFFFFFFFFFFFFFFF");
+        i = KMP(m_uszFileData, m_nFileLength, uszflag, 8, i);
+        if (i == -1)
+        {
+            ::AfxMessageBox(_T("此文件不是战团存档！1"));
+            m_szPathName.Empty();
+            return;
+        }
+        i = KMP(m_uszFileData, m_nFileLength, uszflag, 8, i);
+        if (i == -1)
+        {
+            ::AfxMessageBox(_T("此文件不是战团存档！2"));
+            m_szPathName.Empty();
+            return;
+        }
+        i = KMP(m_uszFileData, m_nFileLength, uszflag, 8, i);
+        if (i == -1)
+        {
+            ::AfxMessageBox(_T("此文件不是战团存档！3"));
+            m_szPathName.Empty();
+            return;
+        }*/
+
+        char uszPlayerName[64];
+        int j;
+        for (j = 16; m_uszFileData[j]; ++j);
+        j += 3;
+        int k;
+        for (k = j; m_uszFileData[k]; ++k);
+        if (k - j > 63)
+        {
+            AfxMessageBox(_T("您取的角色名比作者预料中的长...读档失败！"));
+            m_szPathName.Empty();
+            return;
+        }
+        memcpy(uszPlayerName, m_uszFileData + j, k - j + 1);
+        uszPlayerName[k - j - 1] = 0;
+        wchar_t wszPlayerName[64];
+        int nNameLength = MultiByteToWideChar(CP_UTF8, 0, uszPlayerName, -1, NULL, 0);
+        MultiByteToWideChar(CP_UTF8, 0, uszPlayerName, -1, wszPlayerName, nNameLength);        
+        *trpPlayer.pszName = wszPlayerName;
+
+        m_uIndexOfQuitWithoutSave = k + 19;
+        m_bCannotQuitWithoutSave = !m_uszFileData[m_uIndexOfQuitWithoutSave];
+
+        trpPlayer.nIndex = i + 1320;// if for others there should be :领军者：2856; native:808;
+        i = GetTroopInfo(trpPlayer);
+        SendMessage(((CMyForm*)((CMainFrame*)m_pMainWnd)->m_pTroopView)->m_TroopList,
+            LB_RESETCONTENT, 0, 0); 
+        ((CMyForm*)((CMainFrame*)m_pMainWnd)->m_pTroopView)->
+                m_TroopList.AddString(*trpPlayer.pszName);        
+        //NPC
+        unsigned char *usz;
+        const int nFaceKeyLength = 11;
+        const char facekeys[][23] = 
+        {
+            "",
+            "35E246901A069D252CB51D",
+            "5B92C5DEB86D3B5898801D",
+            "2ED78AA5A8C6752C891A1E",
+            "A33C8F74D095186A0B0F00",
+            "8DD2C81237890B5799C81D",
+            "D3B86D1B395B9D49E1C21D",
+            "52974D6B22AA15599EA41E",
+            "13382F5D809CCE39ADC71C",
+            "6DD3D59C2AA68B4F25361E",
+            "53AB4E5923914B2B36551D",
+            "6AE955EBD6D1D544DBB01D",
+            "624A322823976F5C31D31C",
+            "F4444D639752A133DB021E",
+            "CB468D1CC7912C578A461E",
+            "4C574EDE92954E5F9C361E"};
+        const char names[][32] = 
+        {
+            "",
+            "波尔查",
+            "雅米拉",
+            "罗尔夫",
+            "法提斯",
+            "马尼德",
+            "艾雷恩",
+            "凯特琳",
+            "克雷斯",
+            "杰姆斯",
+            "亚提曼",
+            "雷萨里特",
+            "贝斯图尔",
+            "德赛维",
+            "班达克",
+            "尼扎"};
+        m_nNumNpc = 15;
+        int nStartPos = i;
+        for (int j = 1; j <= m_nNumNpc; ++j)
+        {
+            *trpNpc[j].pszName = names[j];
+            usz = GetUszFromHex(facekeys[j]);
+            i = KMP(m_uszFileData, m_nFileLength, usz, nFaceKeyLength, nStartPos);
+            delete usz;
+            if (i == -1)
+            {
+                AfxMessageBox(_T("该存档NPC人物容貌被改动，无法继续。请关注更新。"));
+                return;
+            }
+            trpNpc[j].nIndex = i - 1187; /* 498h 1176 */
+            /*i = */GetTroopInfo(trpNpc[j]);
+            ((CMyForm*)((CMainFrame*)m_pMainWnd)->m_pTroopView)->
+                m_TroopList.AddString(*trpNpc[j].pszName);
+        }
+
+        GetItemPlayerInfo();
+        
+        Update(FALSE);
+    }
+}

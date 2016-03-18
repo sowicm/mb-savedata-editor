@@ -1,0 +1,20 @@
+
+void CZJDXGui::SetTrace(DWORD dwStayTime, int nFontID)
+{
+    m_TraceStayTime = dwStayTime;
+    m_TraceFontID = nFontID;
+}
+
+
+void CZJDXGui::Trace(LPCTSTR pText, DWORD dwColor)
+{
+    CZJDXGUITrace t;
+    int len = wcslen(pText);
+    t.pText = new TCHAR[len + 1];
+    wcscpy_s(t.pText, sizeof(wchar_t) * (len + 1), pText);
+    t.dwColor = dwColor;
+    t.dwPostTime = t.dwLastTime = GetTickCount();
+    t.top = m_nHeight;
+
+    m_Traces.Add(t);
+}

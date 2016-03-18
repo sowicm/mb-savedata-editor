@@ -1,0 +1,171 @@
+
+int CMainApp::GetTroopInfo(CTroop& trp)
+{
+    int i = trp.nIndex;
+    assert(i != 0);
+    trp.attSTR = *(unsigned*)(&m_uszFileData[i]);
+
+    i += 4;
+    trp.attAGI = *(unsigned*)(&m_uszFileData[i]);
+
+    i += 4;
+    trp.attINT = *(unsigned*)(&m_uszFileData[i]);
+
+    i += 4;
+    trp.attCHA = *(unsigned*)(&m_uszFileData[i]);
+
+    //
+    unsigned t;
+
+    i += 32;
+    t = m_uszFileData[i];
+    trp.sklTrade = t & 0xF;
+    trp.sklLeadership = (t & 0xF0) >> 4;
+
+    t = m_uszFileData[++i];
+    trp.sklPManagement = t & 0xF;
+    trp.sklR[1] = (t & 0xF0) >> 4;        
+
+    t = m_uszFileData[++i];
+    trp.sklR[2] = t & 0xF;
+    trp.sklR[3] = (t & 0xF0) >> 4;
+
+    t = m_uszFileData[++i];
+    trp.sklR[4] = t & 0xF;
+    trp.sklPersuation = (t & 0xF0) >> 4;
+
+    t = m_uszFileData[++i];
+    trp.sklEngineer = t & 0xF;
+    trp.sklFirstAid = (t & 0xF0) >> 4;
+
+    t = m_uszFileData[++i];
+    trp.sklSurgery = t & 0xF;
+    trp.sklWTreatment = (t & 0xF0) >> 4;
+
+    t = m_uszFileData[++i];
+    trp.sklIManagement = t & 0xF;
+    trp.sklSpotting = (t & 0xF0) >> 4;
+
+    t = m_uszFileData[++i];
+    trp.sklPathfinding = t & 0xF;
+    trp.sklTactics = (t & 0xF0) >> 4;
+
+    t = m_uszFileData[++i];
+    trp.sklTracking = t & 0xF;
+    trp.sklTrainer = (t & 0xF0) >> 4;
+
+    t = m_uszFileData[++i];
+    trp.sklR[5] = t & 0xF;
+    trp.sklR[6] = (t & 0xF0) >> 4;
+
+    t = m_uszFileData[++i];
+    trp.sklR[7] = t & 0xF;
+    trp.sklR[8] = (t & 0xF0) >> 4;
+
+    t = m_uszFileData[++i];
+    trp.sklLooting = t & 0xF;
+    trp.sklHArchery = (t & 0xF0) >> 4;
+
+    t = m_uszFileData[++i];
+    trp.sklRiding = t & 0xF;
+    trp.sklAthletics = (t & 0xF0) >> 4;
+
+    t = m_uszFileData[++i];
+    trp.sklShield = t & 0xF;
+    trp.sklWMaster = (t & 0xF0) >> 4;
+
+    t = m_uszFileData[++i];
+    trp.sklR[9] = t & 0xF;
+    trp.sklR[10] = (t & 0xF0) >> 4;
+
+    t = m_uszFileData[++i];
+    trp.sklR[11] = t & 0xF;
+    trp.sklR[12] = (t & 0xF0) >> 4;
+
+    t = m_uszFileData[++i];
+    trp.sklR[13] = t & 0xF;
+    trp.sklPDraw = (t & 0xF0) >> 4;
+
+    t = m_uszFileData[++i];
+    trp.sklPThrow = t & 0xF;
+    trp.sklPStrike = (t & 0xF0) >> 4;
+
+    t = m_uszFileData[++i];
+    trp.sklIronflesh = t & 0xF;
+    trp.sklR[14] = (t & 0xF0) >> 4;
+
+    t = m_uszFileData[++i];
+    trp.sklR[15] = t & 0xF;
+    trp.sklR[16] = (t & 0xF0) >> 4;
+
+    t = m_uszFileData[++i];
+    trp.sklR[17] = t & 0xF;
+    trp.sklR[18] = (t & 0xF0) >> 4;
+
+    //at FD109H
+
+    i += 224;
+    trp.nSkillPoints = *(unsigned*)(&m_uszFileData[i]);
+
+    i += 4;
+    trp.nAttributePoints = *(unsigned*)(&m_uszFileData[i]);
+
+    i += 4;
+    trp.nWeaponPoints = *(unsigned*)(&m_uszFileData[i]);
+
+    i += 4;
+    trp.nLevel = *(unsigned*)(&m_uszFileData[i]);
+
+    i += 4;
+    trp.nMoney = *(unsigned*)(&m_uszFileData[i]);    //++i;trp.nMoney |= (m_uszFileData[i] << 8);
+
+    i += 4;
+    trp.nXP = *(unsigned*)(&m_uszFileData[i]);//++i;trp.nXP |= (m_uszFileData[i] << 8);++i;trp.nXP |= (m_uszFileData[i] << 16);++i;trp.nXP |= (m_uszFileData[i] << 24);
+
+    i += 860;
+    // 89 67  5 23 41
+    char str[17] = {0};
+    str[7] = lpszByteToHex[m_uszFileData[i]][0];
+    str[8] = lpszByteToHex[m_uszFileData[i]][1];
+    ++i;
+    str[5] = lpszByteToHex[m_uszFileData[i]][0];
+    str[6] = lpszByteToHex[m_uszFileData[i]][1];
+    ++i;
+    str[4] = lpszByteToHex[m_uszFileData[i]][1];
+    ++i;
+    str[1] = lpszByteToHex[m_uszFileData[i]][0];
+    str[2] = lpszByteToHex[m_uszFileData[i]][1];
+    ++i;
+    str[3] = lpszByteToHex[m_uszFileData[i]][0];
+    str[0] = lpszByteToHex[m_uszFileData[i]][1];
+    *trp.pszFaceKey1 = str;
+    trp.pszFaceKey1->MakeLower();
+
+    i += 4;
+    char str2[17];
+    strcpy(str, lpszByteToHex[m_uszFileData[i]]);
+    ++i;
+    strcpy(str2, lpszByteToHex[m_uszFileData[i]]);
+    strcat(str2, str);
+    ++i;
+    strcpy(str, lpszByteToHex[m_uszFileData[i]]);
+    strcat(str, str2);
+    ++i;
+    strcpy(str2, lpszByteToHex[m_uszFileData[i]]);
+    strcat(str2, str);
+    ++i;
+    strcpy(str, lpszByteToHex[m_uszFileData[i]]);
+    strcat(str, str2);
+    ++i;
+    strcpy(str2, lpszByteToHex[m_uszFileData[i]]);
+    strcat(str2, str);
+    ++i;
+    strcpy(str, lpszByteToHex[m_uszFileData[i]]);
+    strcat(str, str2);
+    ++i;
+    strcpy(str2, lpszByteToHex[m_uszFileData[i]]);
+    strcat(str2, str);
+    *trp.pszFaceKey2 = str2;
+    trp.pszFaceKey2->MakeLower();
+    return i;
+}

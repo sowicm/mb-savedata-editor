@@ -1,0 +1,83 @@
+
+void CMainApp::GetItemPlayerInfo(void)
+{
+    ((CItemView*)((CMainFrame*)m_pMainWnd)->m_pItemView)->
+        m_ItemList.DeleteAllItems();
+    ((CItemView*)((CMainFrame*)m_pMainWnd)->m_pItemView)->
+        m_ImageList.Create(IDB_WRITELARGE, 32, 1, 0);
+    ((CItemView*)((CMainFrame*)m_pMainWnd)->m_pItemView)->
+        m_ItemList.SetImageList(&((CItemView*)((CMainFrame*)m_pMainWnd)->m_pItemView)->m_ImageList, LVSIL_NORMAL);
+
+    int i = trpPlayer.nIndex + 320;
+    for (int j = 0; j < CItem::Number; ++j)
+    {
+        itmPlayer[j].nID = *(unsigned*)(&m_uszFileData[i]);
+        i += 4;
+        itmPlayer[j].nConsumed = m_uszFileData[i];
+        i += 3;
+        itmPlayer[j].nModifier = m_uszFileData[i];
+        ++i;
+        if (itmPlayer[j].nID != -1)
+        {
+            itmPlayer[j].szName = pCurMod->szModifierNames[itmPlayer[j].nModifier] +
+                pCurMod->szItemNames[itmPlayer[j].nID];
+            ((CItemView*)((CMainFrame*)m_pMainWnd)->m_pItemView)->
+                m_ItemList.InsertItem(j, itmPlayer[j].szName, 0);//, IDB_MAIN);
+        }
+        else
+        {
+            ((CItemView*)((CMainFrame*)m_pMainWnd)->m_pItemView)->
+                m_ItemList.InsertItem(j, _T("空物品栏"), 0);//, IDB_MAIN);
+        }
+    }
+
+}
+
+
+void CMainApp::OnUpdateButton8(CCmdUI *pCmdUI)
+{
+    pCmdUI->Enable(!m_szPathName.IsEmpty());
+    pCmdUI->SetText(m_bModifyItem ? _T("完成修改") : _T("修改选定物品"));
+}
+
+
+void CMainApp::OnButton8()
+{
+    if (!m_bModifyItem)
+    {
+        int index = ((CItemView*)((CMainFrame*)m_pMainWnd)->m_pItemView)->
+            m_ItemList.GetSelectionMark();
+        pModifierComboBox->SelectItem(itmPlayer[index].nModifier);
+        pItemKindComboBox->SelectItem(itmPlayer[index].nID == -1 ? _T("空物品栏") : pCurMod->szItemNames[itmPlayer[index].nID]);//nSelectIndex);
+        CString sz;
+        sz.Format(_T("%d"), itmPlayer[index].nConsumed);
+        pConsumedEdit->SetEditText(sz);
+        m_nIndexModify = index;
+    }
+    else
+    {
+        if (m_nIndexModify == -1)
+        {
+            AfxMessageBox(_T("你没有选择任何物品"));
+            m_bModifyItem = !m_bModifyItem;
+            return;
+        }
+        int index = m_nIndexModify;
+        itmPlayer[index].nModifier = pModifierComboBox->GetCurSel();
+        itmPlayer[index].nID = GetItemIDFromStr(pItemKindComboBox->GetItem(pItemKindComboBox->GetCurSel()));
+        
+        wchar_t *wsz = pConsumedEdit->GetEditText().GetBuffer();
+        swscanf(wsz, L"%d", &itmPlayer[index].nConsumed);
+
+        itmPlayer[index].szName = itmPlayer[index].nID == -1 ? _T("空物品栏") :
+            pCurMod->szModifierNames[itmPlayer[index].nModifier] + 
+            pCurMod->szItemNames[itmPlayer[index].nID];
+
+        ((CItemView*)((CMainFrame*)m_pMainWnd)->m_pItemView)->
+            m_ItemList.SetItemText(index, 0, itmPlayer[index].szName);
+
+        m_nIndexModify = -1;
+    }
+
+    m_bModifyItem = !m_bModifyItem;
+}

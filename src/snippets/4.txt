@@ -1,0 +1,198 @@
+
+const char chHex[] = "0123456789ABCDEF";
+unsigned char* CMainApp::GetUszFromHex(const char* strHex)
+{
+    int nLength = strlen(strHex);
+    assert(!(nLength & 1));
+    unsigned char* usz = new unsigned char[nLength >> 1];
+    for (int i = 0; strHex[i]; i += 2)
+    {
+        for (int j = 0; j < 16; ++j)
+        {
+            if (strHex[i] == chHex[j])
+            {
+                usz[i >> 1] = j * 16;
+                for (j = 0; j < 16; ++j)
+                {
+                    if (strHex[i + 1] == chHex[j])
+                    {
+                        usz[i >> 1] += j;
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+    }
+    return usz;
+}
+
+
+void CMainApp::OnSaveFile(void)
+{
+    Update(TRUE);
+    assert(!m_szPathName.IsEmpty());
+    m_uszFileData[m_uIndexOfQuitWithoutSave] = !m_bCannotQuitWithoutSave;
+    PutTroopInfo(trpPlayer);
+    PutItemPlayerInfo();
+    for (int j = 1; j <= m_nNumNpc; ++j)
+        PutTroopInfo(trpNpc[j]);
+    ofstream file(m_szPathName, ios::binary);
+    file.write((char *)m_uszFileData, m_nFileLength);
+    file.close();
+}
+
+
+void CMainApp::PutTroopInfo(CTroop& trp)
+{
+    int i = trp.nIndex;
+    assert(i != 0);
+    *(unsigned*)(&m_uszFileData[i]) = trp.attSTR;
+
+    i += 4;
+    *(unsigned*)(&m_uszFileData[i]) = trp.attAGI;
+
+    i += 4;
+    *(unsigned*)(&m_uszFileData[i]) = trp.attINT;
+
+    i += 4;
+    *(unsigned*)(&m_uszFileData[i]) = trp.attCHA;
+
+    //
+    unsigned t;
+
+    i += 32;
+    t = trp.sklTrade | (trp.sklLeadership << 4);
+    m_uszFileData[i] = t;
+
+
+    t = trp.sklPManagement | (trp.sklR[1] << 4);
+    m_uszFileData[++i] = t;
+
+     t = trp.sklR[2] | (trp.sklR[3] << 4);
+    m_uszFileData[++i] = t;
+
+    t = trp.sklR[4] | (trp.sklPersuation << 4);
+    m_uszFileData[++i] = t;
+
+    t = trp.sklEngineer | (trp.sklFirstAid << 4);
+    m_uszFileData[++i] = t;
+
+    t = trp.sklSurgery | (trp.sklWTreatment << 4);
+    m_uszFileData[++i] = t;
+
+    t = trp.sklIManagement | (trp.sklSpotting << 4);
+    m_uszFileData[++i] = t;
+
+    t = trp.sklPathfinding | (trp.sklTactics << 4);
+    m_uszFileData[++i] = t;
+
+    t = trp.sklTracking | (trp.sklTrainer << 4);
+    m_uszFileData[++i] = t;
+
+    t = trp.sklR[5] | (trp.sklR[6] << 4);
+    m_uszFileData[++i] = t;
+
+    t = trp.sklR[7] | (trp.sklR[8] << 4);
+    m_uszFileData[++i] = t;
+
+    t = trp.sklLooting | (trp.sklHArchery << 4);
+    m_uszFileData[++i] = t;
+
+    t = trp.sklRiding | (trp.sklAthletics << 4);
+    m_uszFileData[++i] = t;
+
+    t = trp.sklShield | (trp.sklWMaster << 4);
+    m_uszFileData[++i] = t;
+
+    t = trp.sklR[9] | (trp.sklR[10] << 4);
+    m_uszFileData[++i] = t;
+
+    t = trp.sklR[11] | (trp.sklR[12] << 4);
+    m_uszFileData[++i] = t;
+
+    t = trp.sklR[13] | (trp.sklPDraw << 4);
+    m_uszFileData[++i] = t;
+
+    t = trp.sklPThrow | (trp.sklPStrike << 4);
+    m_uszFileData[++i] = t;
+
+    t = trp.sklIronflesh | (trp.sklR[14] << 4);
+    m_uszFileData[++i] = t;
+
+    t = trp.sklR[15] | (trp.sklR[16] << 4);
+    m_uszFileData[++i] = t;
+
+    t = trp.sklR[17] | (trp.sklR[18] << 4);
+    m_uszFileData[++i] = t;
+
+    //at FD109H
+
+    i += 224;
+    *(unsigned*)(&m_uszFileData[i]) = trp.nSkillPoints;
+
+    i += 4;
+    *(unsigned*)(&m_uszFileData[i]) = trp.nAttributePoints;
+
+    i += 4;
+    *(unsigned*)(&m_uszFileData[i]) = trp.nWeaponPoints;
+
+    i += 4;
+    //m_uszFileData[i] = trp.nLevel;
+
+    i += 4;
+    //trp.nMoney = m_uszFileData[i];
+    ++i;
+    //trp.nMoney |= (m_uszFileData[i] << 8);
+
+    i += 3;
+    *(unsigned*)(&m_uszFileData[i]) = trp.nXP;
+
+    i += 860;
+    // 89 67  5 23 41
+    /*
+    char str[17] = {0};
+    str[7] = lpszByteToHex[m_uszFileData[i]][0];
+    str[8] = lpszByteToHex[m_uszFileData[i]][1];
+    ++i;
+    str[5] = lpszByteToHex[m_uszFileData[i]][0];
+    str[6] = lpszByteToHex[m_uszFileData[i]][1];
+    ++i;
+    str[4] = lpszByteToHex[m_uszFileData[i]][1];
+    ++i;
+    str[1] = lpszByteToHex[m_uszFileData[i]][0];
+    str[2] = lpszByteToHex[m_uszFileData[i]][1];
+    ++i;
+    str[3] = lpszByteToHex[m_uszFileData[i]][0];
+    str[0] = lpszByteToHex[m_uszFileData[i]][1];
+    *trp.pszFaceKey1 = str;
+    trp.pszFaceKey1->MakeLower();
+
+    i += 4;
+    char str2[17];
+    strcpy(str, lpszByteToHex[m_uszFileData[i]]);
+    ++i;
+    strcpy(str2, lpszByteToHex[m_uszFileData[i]]);
+    strcat(str2, str);
+    ++i;
+    strcpy(str, lpszByteToHex[m_uszFileData[i]]);
+    strcat(str, str2);
+    ++i;
+    strcpy(str2, lpszByteToHex[m_uszFileData[i]]);
+    strcat(str2, str);
+    ++i;
+    strcpy(str, lpszByteToHex[m_uszFileData[i]]);
+    strcat(str, str2);
+    ++i;
+    strcpy(str2, lpszByteToHex[m_uszFileData[i]]);
+    strcat(str2, str);
+    ++i;
+    strcpy(str, lpszByteToHex[m_uszFileData[i]]);
+    strcat(str, str2);
+    ++i;
+    strcpy(str2, lpszByteToHex[m_uszFileData[i]]);
+    strcat(str2, str);*/
+    //*trp.pszFaceKey2 = str2;
+    //trp.pszFaceKey2->MakeLower();
+}
+

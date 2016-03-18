@@ -1,0 +1,548 @@
+
+void CMainFrame::GUIProc(int id, int Param, CZJDXGUIControl* pCtrl)
+{
+    switch (id)
+    {
+    case ID_GUI_VISITHOMEPAGE:
+    case ID_GUI_ZJLOGO:
+        if (Param == ZJM_LEFTBUTTONUP)
+            ShellExecuteA(NULL, "open", "http://zi-jin.com", NULL, NULL, SW_SHOWNORMAL);
+        break;
+    case ID_GUI_VISITMNBCNPOST:
+        if (Param == ZJM_LEFTBUTTONUP)
+            ShellExecuteA(NULL, "open", "http://bbs.mountblade.com.cn/viewthread.php?tid=175687", NULL, NULL, SW_SHOWNORMAL);
+        break;
+    case ID_GUI_LOADFILE:
+        if (Param == ZJM_LEFTBUTTONUP)
+            theEditor.OnFileOpen();
+        break;
+    case ID_GUI_SAVEFILE:
+        if (Param == ZJM_LEFTBUTTONUP)
+            theEditor.OnSaveFile();
+        break;
+    case ID_GUI_SAVEFILEAS:
+        if (Param == ZJM_LEFTBUTTONUP)
+            theEditor.OnSaveFileAs();
+        break;
+    case ID_GUI_GOTOTROOPVIEW:
+        if (Param == ZJM_LEFTBUTTONUP)
+            TurnView(VIEW_CHARWIN);
+        break;
+    case ID_GUI_GOTOITEMVIEW:
+        if (Param == ZJM_LEFTBUTTONUP)
+            TurnView(VIEW_ITEMWIN);
+        break;
+    case ID_GUI_BACKTOMAINMENU:
+        if (Param == ZJM_LEFTBUTTONUP)
+            TurnView(VIEW_MAINMENU);
+        break;
+    case ID_GUI_QUIT:
+        if (Param == ZJM_LEFTBUTTONUP)
+            PostQuitMessage(0);
+
+
+    case ID_GUI_NPCLISTITEM:
+        if (Param == ZJM_LEFTBUTTONUP)
+        {
+            Update(true);            
+            for (int i = 0; i <= theEditor.m_nTotalNpc; ++i)
+            {
+                if (m_pCharacters[i] == pCtrl)
+                {
+                    theEditor.pCurTroop = i == 0 ? &theEditor.trpPlayer : &theEditor.trpNpc[i];
+                    Update(false);
+                    break;
+                }
+            }
+        }
+        break;
+    }
+}
+
+
+void CMainFrame::SetupGui(void)
+{
+    CZJDXGui *pGui;
+    RECT rc;
+    DWORD dwColor;
+    theEditor.m_pMainFrm = this;
+    //---------------------------
+    pGui = &m_guiTop;
+    pGui->CreateGui(m_pD3DDevice, 800, 600, 0, 19);
+
+    rc.left = 695;
+    rc.top = 15;
+    rc.right = rc.left + 88;
+    rc.bottom = rc.top + 33;
+    pGui->AddButton(ID_GUI_ZJLOGO, NULL, &rc, 
+        MAKEINTRESOURCE(IDB_PNG1), NULL, 
+        MAKEINTRESOURCE(IDB_PNG2), NULL, 
+        MAKEINTRESOURCE(IDB_PNG3), NULL);
+
+    int nTraceID;
+    pGui->CreateFontW(_T("楷体"), 18, &nTraceID);
+    pGui->SetTrace(800, nTraceID);
+
+    //---------------------------
+    pGui = &m_guiMainMenu;
+    pGui->CreateGui(m_pD3DDevice, 800, 600, 0, 19);
+    pGui->AddBackdrop(NULL, MAKEINTRESOURCE(IDR_RCDATA3));
+
+    int nMainMenuFont;
+    pGui->CreateFontW(L"楷体", 18, &nMainMenuFont);
+
+    /* 已被3DTEXT 代替
+    rc.left = 50;
+    rc.top = 110;
+    pGui->AddStaticText(0, L"战团存档修改器", &rc, D3DCOLOR_XRGB(69, 45, 13), nMainMenuLogoFont);
+    */
+    
+    rc.left = 55;
+    rc.top = 174;
+    rc.right = rc.left + 125;
+    rc.bottom = rc.top + 20;
+    pGui->AddStaticText(ID_GUI_VISITHOMEPAGE, L"访问主页", &rc, D3DCOLOR_XRGB(64, 31, 13), nMainMenuFont, D3DCOLOR_XRGB(246, 216, 22), 0, true);
+    
+    rc.top += 30;
+    rc.bottom += 30;
+    pGui->AddStaticText(ID_GUI_VISITMNBCNPOST, L"访问中文站帖子", &rc, D3DCOLOR_XRGB(64, 31, 13), nMainMenuFont, D3DCOLOR_XRGB(246, 216, 22), 0, true);
+    
+    rc.top += 30;
+    rc.bottom += 30;
+    pGui->AddStaticText(ID_GUI_LOADFILE, L"载入存档", &rc, D3DCOLOR_XRGB(64, 31, 13), nMainMenuFont, D3DCOLOR_XRGB(246, 216, 22), 0, true);
+    
+    rc.top += 30;
+    rc.bottom += 30;
+    pGui->AddStaticText(ID_GUI_SAVEFILE, L"保存", &rc, D3DCOLOR_XRGB(64, 31, 13), nMainMenuFont, D3DCOLOR_XRGB(246, 216, 22), D3DCOLOR_XRGB(115, 102, 72), true, &m_pMainMenuButtons[0]);
+    
+    rc.top += 30;
+    rc.bottom += 30;
+    pGui->AddStaticText(ID_GUI_SAVEFILEAS, L"另存为", &rc, D3DCOLOR_XRGB(64, 31, 13), nMainMenuFont, D3DCOLOR_XRGB(246, 216, 22), D3DCOLOR_XRGB(115, 102, 72), true, &m_pMainMenuButtons[1]);
+    
+    rc.top += 30;
+    rc.bottom += 30;
+    pGui->AddStaticText(ID_GUI_GOTOTROOPVIEW, L"修改人物", &rc, D3DCOLOR_XRGB(64, 31, 13), nMainMenuFont, D3DCOLOR_XRGB(246, 216, 22), D3DCOLOR_XRGB(115, 102, 72), true, &m_pMainMenuButtons[2]);
+    
+    rc.top += 30;
+    rc.bottom += 30;
+    pGui->AddStaticText(ID_GUI_GOTOITEMVIEW, L"修改物品", &rc, D3DCOLOR_XRGB(64, 31, 13), nMainMenuFont, D3DCOLOR_XRGB(246, 216, 22), D3DCOLOR_XRGB(115, 102, 72), true, &m_pMainMenuButtons[3]);
+    
+    rc.top += 30;
+    rc.bottom += 30;
+    pGui->AddStaticText(ID_GUI_QUIT, L"退出", &rc, D3DCOLOR_XRGB(64, 31, 13), nMainMenuFont, D3DCOLOR_XRGB(246, 216, 22), 0, true);
+    //---------------------------
+    int fonts[10];
+
+    pGui = &m_guiCharacterWindow;
+    pGui->CreateGui(m_pD3DDevice, 800, 600, 0, 19);
+    pGui->AddBackdrop(NULL, MAKEINTRESOURCE(IDR_D3DXIFF_DDS1));
+    pGui->CreateFontW(L"楷体", 20, &fonts[1]);
+
+    rc.left = 285;
+    rc.top = 66;
+    pGui->AddStaticText(0, L"等级：", &rc, D3DCOLOR_XRGB(64, 31, 13), fonts[1]);
+    rc.top += 20;
+    pGui->AddStaticText(0, L"经验值：", &rc, D3DCOLOR_XRGB(64, 31, 13), fonts[1]);
+
+    rc.left = 285 + 60;
+    rc.top = 66;
+    pGui->AddStaticText(ID_GUI_LEVEL, L"", &rc, D3DCOLOR_XRGB(64, 31, 13), fonts[1]);
+    rc.left += 20;
+    rc.top += 20;
+    pGui->AddStaticText(ID_GUI_XP, L"", &rc, D3DCOLOR_XRGB(64, 31, 13), fonts[1]);
+    
+    pGui->CreateFontW(L"楷体", 17, &fonts[2]);
+    rc.left = 66;
+    rc.top = 388;
+    pGui->AddStaticText(0, L"属性", &rc, D3DCOLOR_XRGB(25, 37, 65), fonts[2]);
+    rc.left = 315;
+    rc.top = 175;
+    pGui->AddStaticText(0, L"技能", &rc, D3DCOLOR_XRGB(58, 82, 36), fonts[2]);
+    rc.left = 600;
+    rc.top = 258;
+    pGui->AddStaticText(0, L"人物列表", &rc, D3DCOLOR_XRGB(91, 62, 39), fonts[2]);
+    
+    pGui->CreateFontW(L"楷体", 15, &fonts[3]);
+    rc.left = 40;
+    rc.top = 418;
+    rc.right = rc.left + 180;
+    rc.bottom = rc.top + 15;
+    pGui->AddStaticText(0, L"力：", &rc, D3DCOLOR_XRGB(25, 37, 65), fonts[3], D3DCOLOR_XRGB(37, 46, 209));
+    rc.top += 25;
+    rc.bottom += 25;
+    pGui->AddStaticText(0, L"敏：", &rc, D3DCOLOR_XRGB(25, 37, 65), fonts[3], D3DCOLOR_XRGB(37, 46, 209));
+    rc.top += 25;
+    rc.bottom += 25;
+    pGui->AddStaticText(0, L"智：", &rc, D3DCOLOR_XRGB(25, 37, 65), fonts[3], D3DCOLOR_XRGB(37, 46, 209));
+    rc.top += 25;
+    rc.bottom += 25;
+    pGui->AddStaticText(0, L"魅：", &rc, D3DCOLOR_XRGB(25, 37, 65), fonts[3], D3DCOLOR_XRGB(37, 46, 209));
+
+    pGui->CreateFontW(L"楷体", 14, &fonts[4]);
+    rc.left = 278;
+    rc.top = 200;
+    rc.right = rc.left + 240;
+    rc.bottom = rc.top + 14;
+    for (int i = 0; i < sizeof(tmp_Skls) / sizeof(tmp_Skls[0]); ++i)
+    {
+        pGui->AddStaticText(0, tmp_Skls[i], &rc, D3DCOLOR_XRGB(58, 82, 36), fonts[4], D3DCOLOR_XRGB(32, 175, 25));
+        rc.top += 14;
+        rc.bottom += 14;
+    }
+
+    rc.left = 48;
+    rc.top = 535;
+    pGui->AddStaticText(0, L"属性点:", &rc, D3DCOLOR_XRGB(25, 37, 65), fonts[2]);
+    rc.left = 310;
+    pGui->AddStaticText(0, L"技能点:", &rc, D3DCOLOR_XRGB(58, 82, 36), fonts[2]);
+    rc.top += 20;
+    pGui->AddStaticText(0, L"武器点:", &rc, D3DCOLOR_XRGB(91, 62, 39), fonts[2]);
+
+    rc.left = 245;
+    rc.top = 15;
+    rc.right = rc.left + 310;
+    rc.bottom = rc.top + 35;
+    RECT back, up, down, over;
+    up.left = 12;
+    up.top = 545;
+    up.right = 602;
+    up.bottom = 610;
+    down.left = 12;
+    down.top = 445 + 1;
+    down.right = 602;
+    down.bottom = 510 + 1;
+    pGui->CreateFontW(L"宋体", 18, &fonts[5]);
+    pGui->AddEditBox(ID_GUI_NAME, L"Zi-Jin.com", &rc, D3DCOLOR_XRGB(6, 5, 4),
+        MAKEINTRESOURCE(IDR_RCDATA1), &up, 0, &down, 0, NULL,
+        false, 14, fonts[5]);
+
+    rc.left = 685;
+    rc.top = 555;
+    rc.right = rc.left + 100;
+    rc.bottom = rc.top + 35;
+    up.left = 330;
+    up.top = 115;
+    up.right = 565;
+    up.bottom = 195;
+    down.left = up.left;
+    down.top = 15;
+    down.right = up.right;
+    down.bottom = up.bottom - up.top + down.top;
+    pGui->AddButton(ID_GUI_BACKTOMAINMENU, _T("完成"), &rc, 
+        MAKEINTRESOURCE(IDR_RCDATA1), &up, 
+        NULL, &down, 
+        NULL, NULL,
+        D3DCOLOR_XRGB(9, 8, 7),
+        D3DCOLOR_XRGB(24, 127, 17),
+        0,
+        fonts[1]);
+
+    up.left = 757;
+    up.top = 220;
+    up.right = 931;
+    up.bottom = 284;
+    int nEditStyle;
+    int nEditFont = fonts[4];
+    pGui->CreateControlStyle(48, 14, &nEditStyle, MAKEINTRESOURCE(IDR_RCDATA1), &up, 0, 0, 0, 0);
+    dwColor = D3DCOLOR_XRGB(255, 255, 255);
+    rc.top = 200;
+    rc.left = 470;
+    for (int i = 0, j = ID_GUI_SKLEDIT_BEGIN; i < sizeof(tmp_Skls) / sizeof(tmp_Skls[0]); ++i, ++j)
+    {
+        pGui->AddEditBox(j, _T(""), &rc, dwColor, nEditStyle, true, 2, nEditFont);
+        rc.top += 14;
+    }
+    
+    pGui->CreateControlStyle(96, 15, &nEditStyle, MAKEINTRESOURCE(IDR_RCDATA1), &up, 0, 0, 0, 0);
+    rc.left = 120;
+    rc.top = 418;
+    pGui->AddEditBox(ID_GUI_STR, _T(""), &rc, dwColor, nEditStyle, true, 10, nEditFont);
+    rc.top += 25;
+    pGui->AddEditBox(ID_GUI_AGI, _T(""), &rc, dwColor, nEditStyle, true, 10, nEditFont);
+    rc.top += 25;
+    pGui->AddEditBox(ID_GUI_INT, _T(""), &rc, dwColor, nEditStyle, true, 10, nEditFont);
+    rc.top += 25;
+    pGui->AddEditBox(ID_GUI_CHA, _T(""), &rc, dwColor, nEditStyle, true, 10, nEditFont);
+    rc.top += 25;
+    
+    rc.left = 48 + 65;
+    rc.top = 535 + 2;
+    pGui->AddEditBox(ID_GUI_ATTPOINT, _T(""), &rc, dwColor, nEditStyle, true, 10, nEditFont);
+    rc.left = 310 + 65;
+    pGui->AddEditBox(ID_GUI_SKLPOINT, _T(""), &rc, dwColor, nEditStyle, true, 10, nEditFont);
+    rc.top += 20;
+    pGui->AddEditBox(ID_GUI_WPNPOINT, _T(""), &rc, dwColor, nEditStyle, true, 10, nEditFont);
+
+    up.left = 650;
+    up.top = 135;
+    up.right = up.left + 30;
+    up.bottom = up.top + 45;
+    down.left = 682;
+    down.top = 135;
+    down.right = down.left + 30;
+    down.bottom = down.top + 45;
+    pGui->SetCheckBoxStyle(MAKEINTRESOURCE(IDR_RCDATA1), &up, NULL, &down, 30, 45);
+    rc.top = 66;
+    rc.left = 595;
+    rc.right = rc.left + 120;
+    rc.bottom = rc.top + 45;
+    pGui->AddCheckBox(ID_GUI_CANNOTQUITWITHOUTSAVE, _T("直面人生"), &rc, D3DCOLOR_XRGB(64, 31, 13), fonts[1]);
+    //-------------------------------------
+    pGui = &m_guiItemWindow;
+    pGui->CreateGui(m_pD3DDevice, 800, 600, 0, 19);
+    pGui->AddBackdrop(NULL, MAKEINTRESOURCE(IDR_RCDATA4));
+
+    int nFont_s17, nFont_s14;
+    SetRect(&rc, 600, 20, 740, 40);
+    pGui->CreateFontW(_T("楷体"), 14, &nFont_s14);
+    pGui->AddStaticText(ID_GUI_PLAYERNAME, _T(""), &rc, D3DCOLOR_XRGB(0, 0, 0), nFont_s14, 0, 0, true);
+    SetRect(&rc, 610, 550, 0, 0);    
+    pGui->CreateFontW(_T("楷体"), 17, &nFont_s17);
+    pGui->AddStaticText(0, _T("钱:"), &rc, D3DCOLOR_XRGB(0, 0, 0), nFont_s17);
+    OffsetRect(&rc, 30, 0);
+    SetRect(&up, 757, 220, 931, 284);
+    pGui->CreateControlStyle(96, 18, &nEditStyle, MAKEINTRESOURCE(IDR_RCDATA1), &up, 0, 0, 0, 0);
+    pGui->AddEditBox(ID_GUI_MONEY, _T(""), &rc, D3DCOLOR_XRGB(255, 255, 255), nEditStyle, true, 10, nFont_s17);
+    rc.left = 551;
+    rc.top = 42;
+    rc.right = rc.left + 3 * 72;
+    rc.bottom = 520;
+    up.left = up.top = 0;
+    up.right = up.bottom = 70;
+    SetRect(&over, 985, 15, 1005, 685);
+    SetRect(&down, 955, 120, 965, 440);
+    pGui->AddListBox(ID_GUI_ITEMLIST, NULL, &rc, 0, -1,
+        NULL, NULL, 72, 70, 3,
+        MAKEINTRESOURCE(IDR_RCDATA5), &up,
+        NULL, NULL, NULL, NULL,
+        0, 0,
+        MAKEINTRESOURCE(IDR_RCDATA1), &over,
+        NULL, &down,
+        218, 8,
+        5, 5,
+        14, 460,
+        5, 90,
+        (CZJDXGUIControl**)&m_pItemList);
+    for (int i = 0; i < 75; ++i)
+    {
+        m_pItemList->AddItem(_T(""));
+    }
+    /*
+    back.left = 680;
+    back.top = 0;
+    back.right = 1024;
+    back.bottom = 630;
+    up.left = 14;
+    up.top = 1024 - 48;
+    up.right = 460;
+    up.bottom = 1024 - 6;
+    down.left = 14 + 467 - 14;
+    down.top = up.top;
+    down.right = 460 + 467 - 14;
+    down.bottom = up.bottom;
+    rc.left = 550;
+    rc.top = 275;
+    rc.right = rc.left + 240;//272;
+    rc.bottom = rc.top + 370;
+    CZJDXGUIListBox *pNpcList;
+    pGui->AddListBox(ID_GUI_NPCLIST, NULL, &rc, 0, -1,
+        MAKEINTRESOURCE(IDR_RCDATA2), &back, 210, 21, 1,
+        MAKEINTRESOURCE(IDR_RCDATA1), &up, NULL, &down, NULL, NULL,
+        20, 50, (CZJDXGUIControl**)&pNpcList);
+    pNpcList->AddItem(_T(""));
+    pNpcList->AddItem(_T(""));
+    pNpcList->AddItem(_T(""));
+    pNpcList->AddItem(_T(""));*/
+}
+
+
+void CMainFrame::SetupMatrices(void)
+{
+    D3DXVECTOR3 Eye(0.0f, 0.0f, -5.0f);
+    D3DXVECTOR3 At(0.0f, 0.0f, 0.0f);
+    D3DXVECTOR3 Up(0.0f, 1.0f, 0.0f);
+
+    D3DXMatrixLookAtLH(&m_ViewMatrix, &Eye, &At, &Up);
+    m_pD3DDevice->SetTransform(D3DTS_VIEW, &m_ViewMatrix);
+
+    RECT rc;
+    ::GetClientRect(m_wndView, &rc);
+    UINT width = rc.right - rc.left;
+    UINT height = rc.bottom - rc.top;
+
+    /*
+    ::GetClientRect(m_wndMenuBar, &rc);
+    height -= rc.bottom - rc.top;
+    CString sz;
+    sz.Format(_T("%d %d"), width, height);
+    AfxMessageBox(sz);
+    */
+
+    D3DXMATRIX proj;
+    D3DXMatrixPerspectiveFovLH(&proj, D3DX_PI * 0.25f, float(width) / height, 0.1f, 1000.0f);
+    m_pD3DDevice->SetTransform(D3DTS_PROJECTION, &proj);
+}
+
+
+void CMainFrame::Render(void)
+{
+    if (!m_pD3DDevice)
+        return;
+    m_pD3DDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 255, 255), 1.0f, 0);
+    m_pD3DDevice->BeginScene();
+    
+    if (m_nCurView == VIEW_MAINMENU)
+    {
+        if (theEditor.IsEmpty())
+        {
+            for (int i = 0; i < m_nNumMainMenuButtons; ++i)
+            {
+                if (m_pMainMenuButtons[i])
+                    m_pMainMenuButtons[i]->m_bDisabled = true;
+            }
+        }
+        else
+        {
+            for (int i = 0; i < m_nNumMainMenuButtons; ++i)
+            {
+                if (m_pMainMenuButtons[i])
+                    m_pMainMenuButtons[i]->m_bDisabled = false;
+            }
+        }
+        ProcessGUI(&m_guiMainMenu, m_bLBDown, m_nMouseX, m_nMouseY, &m_CharReceived, GuiCallBack);
+        m_bTyping = m_guiMainMenu.IsTyping();
+        RenderTitle();
+    }
+    else if (!theEditor.IsEmpty())
+    {
+        switch(m_nCurView)
+        {
+        case VIEW_CHARWIN:
+            ProcessGUI(&m_guiCharacterWindow, m_bLBDown, m_nMouseX, m_nMouseY, &m_CharReceived, GuiCallBack);
+            m_bTyping = m_guiCharacterWindow.IsTyping();
+            break;
+        case VIEW_ITEMWIN:
+            ProcessGUI(&m_guiItemWindow, m_bLBDown, m_nMouseX, m_nMouseY, &m_CharReceived, GuiCallBack);
+            m_bTyping = m_guiItemWindow.IsTyping();
+            
+            D3DXMATRIX mat;
+            D3DXMatrixRotationX(&mat, (float)GetTickCount() / 1000);//D3DX_PI / 2);
+            m_pD3DDevice->SetTransform(D3DTS_WORLD, &mat);
+            theEditor.meshes[0].Render();
+            break;
+        }
+    }
+
+    
+    ProcessGUI(&m_guiTop, m_bLBDown, m_nMouseX, m_nMouseY, &m_CharReceived, GuiCallBack);
+    
+    /*
+    D3DXFONT_DESC fontDesc;
+    fontDesc.Height = 20;// 为负是怎么回事？
+    fontDesc.Width = 0;
+    fontDesc.Weight = 0;
+    fontDesc.MipLevels = 1;
+    fontDesc.Italic = false;
+    fontDesc.CharSet = GB2312_CHARSET;//DEFAULT_CHARSET;
+    fontDesc.OutputPrecision = OUT_DEFAULT_PRECIS;
+    fontDesc.Quality = CLEARTYPE_NATURAL_QUALITY;//DEFAULT_QUALITY;
+    fontDesc.PitchAndFamily = DEFAULT_PITCH | FF_DONTCARE;
+    wcscpy(fontDesc.FaceName, L"楷体");
+    D3DXCreateFontIndirect(m_pD3DDevice, &fontDesc, &m_pFont);
+    RECT rc = {100, 100 + 19, 0, 0};
+    CString sz;
+    sz.Format(_T("%d %d %d"), m_nMouseX, m_nMouseY, GetTickCount());
+    m_pFont->DrawTextW(0, sz.GetBuffer(), -1, &rc, DT_NOCLIP, D3DCOLOR_XRGB(64, 31, 13));
+    m_pFont->Release();
+    */
+
+    m_pD3DDevice->EndScene();
+    m_pD3DDevice->Present(NULL, NULL, NULL, NULL);
+}
+
+
+LRESULT CMainFrame::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
+{
+    switch (message)
+    {
+    case WM_SETCURSOR:
+        //SetCursor(NULL);
+        //m_pD3DDevice->ShowCursor(TRUE);
+        SetCursor(theApp.LoadCursorW(MAKEINTRESOURCE(IDC_CURSOR1)));
+        return TRUE;
+    case WM_DESTROY:
+        if (m_ptexCharacterWindow)
+            m_ptexCharacterWindow->Release();
+        if (m_pvbBG)
+            m_pvbBG->Release();
+        if (m_pD3DDevice)
+            m_pD3DDevice->Release();
+        if (m_pD3D)
+            m_pD3D->Release();
+        break;
+    }
+    LRESULT lr = CFrameWndEx::WindowProc(message, wParam, lParam);
+    switch (message)
+    {
+    case WM_PAINT:
+        Render();
+        break;
+    case WM_SHOWWINDOW:
+        if (!m_pD3D)
+        {
+            InitD3D();
+            InitGeometry();
+            //SetupMatrices();
+            //SetCursor(NULL);
+            //m_pD3DDevice->ShowCursor(TRUE);
+            SetCursor(theApp.LoadCursorW(MAKEINTRESOURCE(IDC_CURSOR1)));
+        }
+        break;
+    }
+    return lr;
+}
+
+void CMainFrame::RenderTitle(void)
+{
+    SetupMatrices();
+    m_pD3DDevice->SetRenderState(D3DRS_LIGHTING, TRUE);
+    m_pD3DDevice->SetRenderState(D3DRS_ZENABLE, TRUE);
+    m_pD3DDevice->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
+    m_pD3DDevice->SetRenderState(D3DRS_SPECULARENABLE, TRUE);
+    m_pD3DDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);//允许绘制背面
+
+    D3DXMATRIXA16 matWorld, matScal, matTrans, matRotat;
+    D3DXMatrixIdentity(&matWorld);    
+    
+    m_pD3DDevice->SetMaterial(&m_mtrlTitle);
+    
+    float a = ((float)D3DX_PI) / 6 * sinf(GetTickCount() / 1000.0f);
+    
+    D3DXMatrixScaling(&matScal, 0.13f, 0.13f, 0.13f);
+    D3DXMatrixTranslation(&matTrans, -1.9f, 1.1f, 0.0f);
+
+    D3DXVECTOR3 axis(0.0f, 1.0f, 0.0f);
+    D3DXVECTOR4 vec4;
+    D3DXVec3Transform(&vec4, &axis, &matTrans);
+    memcpy(&axis, &vec4, sizeof(axis));
+    D3DXMatrixRotationAxis(&matRotat, &axis, a);
+    matWorld = m_matTitlePre * matScal * matTrans * matRotat;
+
+    m_pD3DDevice->SetTransform(D3DTS_WORLD, &matWorld);
+    
+    // Light
+    D3DXCOLOR color = D3DCOLOR_XRGB(255, 255, 255);
+    D3DLIGHT9 light;
+    ZeroMemory(&light, sizeof(light));
+    light.Type = D3DLIGHT_DIRECTIONAL;
+    light.Ambient = color * 0.6f;
+    light.Diffuse = color;
+    light.Specular = color * 0.6f;
+    light.Direction = D3DXVECTOR3(0.0f, -0.5f, 1.0f);
+    light.Position = D3DXVECTOR3(12.0f, -0.2f, -4.0f);
+
+    m_pD3DDevice->SetLight(0, &light);
+    m_pD3DDevice->LightEnable(0, TRUE);
+
+    m_pTitleMesh->DrawSubset(0);
+}
